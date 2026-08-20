@@ -248,7 +248,7 @@
           </h4>
           <p><strong>SG :</strong> ${item.sg || '-'}</p>
           <p><strong>Tél :</strong> ${item.tel || '-'} | <strong>Mail :</strong> ${item.mail || '-'}</p>
-          <p><strong>Syndiqués :</strong> ${item.syndiques} | <strong>Élection :</strong> ${item.pct}</p>
+          <p><strong>Syndiqués :</strong> ${item.syndiques} | <strong>Élection :</strong> ${item.pct ? (item.pct.includes('%') ? item.pct : item.pct + '%') : '-'}</p>
           <p><strong>CGT Majoritaire :</strong> ${item.cgtMaj} ${item.cgtMaj === 'NON' ? `(${item.majQui})` : ''}</p>
           <p><strong>Discord :</strong> ${item.discord || '-'}</p>
         `;
