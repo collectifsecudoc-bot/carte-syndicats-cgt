@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste des syndicats CGT de la Sécurité sociale</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; flex-direction: column; height: 100vh; background: #f4f6f8; }
+    
+    header { background: #1e293b; color: white; padding: 1rem; text-align: center; }
+    .container { display: flex; flex: 1; overflow: hidden; }
+    
+    /* DROM */
+    .drom-panel { width: 260px; background: #ffffff; border-right: 1px solid #cbd5e1; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
+    .drom-panel h3 { font-size: 1.1rem; color: #0f172a; border-bottom: 2px solid #2563eb; padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+    .drom-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .drom-card:hover { background: #e2e8f0; border-color: #2563eb; }
+    .drom-info strong { display: block; color: #0f172a; font-size: 0.9rem; }
+    .drom-badge { background: #93c5fd; color: #1e293b; font-weight: bold; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem; }
+    
+    /* Carte */
+    #map { flex: 2; height: 100%; z-index: 1; background-color: #ffffff; }
+    
+    /* Sidebar Fiches */
+    .sidebar { flex: 1; min-width: 360px; max-width: 420px; background: white; padding: 1.2rem; border-left: 1px solid #cbd5e1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+    
+    .card-org { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; position: relative; }
+    .card-org h4 { color: #1e293b; font-size: 1.1rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.3rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+    .card-org p { font-size: 0.85rem; color: #334155; margin-bottom: 0.3rem; }
+
+    .btn { background: #2563eb; color: white; border: none; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #ef4444; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; width: auto; }
+
+    .dept-label { pointer-events: none; font-weight: 800; font-size: 10px; color: #0f172a; text-align: center; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
+
+    /* Modale Formulaire */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 8px; width: 95%; max-width: 550px; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+    .modal-body { overflow-y: auto; flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.2rem; }
+    .form-group.full { grid-column: span 2; }
+    .form-group label { font-size: 0.8rem; font-weight: bold; color: #334155; }
+    .form-group input, .form-group select { padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>Liste des syndicats CGT de la Sécurité sociale</h2>
+  </header>
+
+  <div class="container">
+    <!-- Panneau DROM -->
+    <div class="drom-panel">
+      <h3>DROM</h3>
+      <div class="drom-card" onclick="selectTerritory('971', 'Guadeloupe')">
+        <div class="drom-info"><strong>Guadeloupe</strong></div>
+        <span class="drom-badge">971</span>
+      </div>
+      <div class="drom-card" onclick="selectTerritory('972', 'Martinique')">
+        <div class="drom-info"><strong>Martinique</strong></div>
+        <span class="drom-badge">972</span>
+      </div>
+      <div class="drom-card" onclick="selectTerritory('973', 'Guyane')">
+        <div class="drom-info"><strong>Guyane</strong></div>
+        <span class="drom-badge">973</span>
+      </div>
+      <div class="drom-card" onclick="selectTerritory('974', 'La Réunion')">
+        <div class="drom-info"><strong>La Réunion</strong></div>
+        <span class="drom-badge">974</span>
+      </div>
+      <div class="drom-card" onclick="selectTerritory('976', 'Mayotte')">
+        <div class="drom-info"><strong>Mayotte</strong></div>
+        <span class="drom-badge">976</span>
+      </div>
+    </div>
+
+    <!-- Carte Métropole -->
+    <div id="map"></div>
+    
+    <!-- Sidebar Fiches Organismes -->
+    <div class="sidebar">
+      <div>
+        <h3 id="dept-title">Sélectionnez un territoire</h3>
+        <p id="dept-code" style="color:#64748b; font-size: 0.9rem;">Cliquez sur la carte ou un DROM pour charger la liste synchronisée.</p>
+      </div>
+
+      <button class="btn" id="btn-add-org" style="display:none;" onclick="openOrgModal()">+ Ajouter un organisme</button>
+
+      <div id="org-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal Édition / Ajout Organisme -->
+  <div class="modal-overlay" id="org-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Fiche Organisme</h3>
+        <button onclick="closeModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="form-group full">
+          <label>Organisme :</label>
+          <select id="field-organisme">
+            <option value="CAF">CAF</option>
+            <option value="CPAM">CPAM</option>
+            <option value="CARSAT">CARSAT</option>
+            <option value="URSSAF">URSSAF</option>
+            <option value="Cnaf">Cnaf</option>
+            <option value="Cnam">Cnam</option>
+            <option value="Cnav">Cnav</option>
+            <option value="UGECAM">UGECAM</option>
+            <option value="Inst.4.10">Inst.4.10</option>
+            <option value="Acoss">Acoss</option>
+            <option value="Ucanss">Ucanss</option>
+            <option value="Cnsa">Cnsa</option>
+            <option value="CGSS">CGSS</option>
+            <option value="CSS">CSS</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Secrétaire Général :</label>
+          <input type="text" id="field-sg" placeholder="Nom et prénom">
+        </div>
+
+        <div class="form-group">
+          <label>Téléphone :</label>
+          <input type="tel" id="field-tel" placeholder="06 00 00 00 00">
+        </div>
+
+        <div class="form-group">
+          <label>Email :</label>
+          <input type="email" id="field-mail" placeholder="contact@domaine.fr">
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de syndiqués :</label>
+          <input type="number" id="field-syndiques" value="0">
+        </div>
+
+        <div class="form-group">
+          <label>% Élection :</label>
+          <input type="text" id="field-pct" placeholder="ex: 45%">
+        </div>
+
+        <div class="form-group">
+          <label>CGT Majoritaire :</label>
+          <select id="field-cgt-maj" onchange="toggleMajInput()">
+            <option value="OUI">OUI</option>
+            <option value="NON">NON</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="group-maj-qui" style="display:none;">
+          <label>Si NON, qui est majoritaire ?</label>
+          <input type="text" id="field-maj-qui" placeholder="ex: CFDT, FO...">
+        </div>
+
+        <div class="form-group full">
+          <label>Référent(s) Discord :</label>
+          <input type="text" id="field-discord" placeholder="@pseudo">
+        </div>
+
+      </div>
+      <button class="btn" style="margin-top: 1rem;" onclick="saveOrgCard()">Enregistrer en direct</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+  
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Tes identifiants Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCpZtwJ1aG8-44iYnsR-GZo62lysULDyzM",
+      authDomain: "syndicats-cgt-secu.firebaseapp.com",
+      projectId: "syndicats-cgt-secu",
+      storageBucket: "syndicats-cgt-secu.firebasestorage.app",
+      messagingSenderId: "728527816234",
+      appId: "1:728527816234:web:ffb5dc78319d432c542553"
+    };
+
+    // Initialisation
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let selectedDeptCode = null;
+    let editingOrgIndex = null;
+    let deptData = {}; 
+    let unsubscribe = null;
+
+    window.selectTerritory = function(code, name) {
+      selectedDeptCode = String(code);
+      document.getElementById('dept-title').innerText = `${name} (${code})`;
+      document.getElementById('dept-code').innerText = `Connexion temps réel active`;
+      document.getElementById('btn-add-org').style.display = 'block';
+
+      if (unsubscribe) unsubscribe();
+
+      // Écoute en direct des changements dans Firestore
+      const deptRef = doc(db, "departements", selectedDeptCode);
+      unsubscribe = onSnapshot(deptRef, (docSnap) => {
+        if (docSnap.exists()) {
+          deptData[selectedDeptCode] = docSnap.data().organismes || [];
+        } else {
+          deptData[selectedDeptCode] = [];
+        }
+        renderOrgList();
+      });
+    };
+
+    function renderOrgList() {
+      const container = document.getElementById('org-list');
+      container.innerHTML = '';
+
+      const list = deptData[selectedDeptCode] || [];
+
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; font-size:0.85rem; margin-top:1rem;">Aucun organisme renseigné pour ce département.</p>';
+        return;
+      }
+
+      list.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'card-org';
+        card.innerHTML = `
+          <h4>
+            ${item.organisme}
+            <div>
+              <button class="btn btn-sm" onclick="editOrgCard(${index})">Éditer</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteOrgCard(${index})">X</button>
+            </div>
+          </h4>
+          <p><strong>SG :</strong> ${item.sg || '-'}</p>
+          <p><strong>Tél :</strong> ${item.tel || '-'} | <strong>Mail :</strong> ${item.mail || '-'}</p>
+          <p><strong>Syndiqués :</strong> ${item.syndiques} | <strong>Élection :</strong> ${item.pct}</p>
+          <p><strong>CGT Majoritaire :</strong> ${item.cgtMaj} ${item.cgtMaj === 'NON' ? `(${item.majQui})` : ''}</p>
+          <p><strong>Discord :</strong> ${item.discord || '-'}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    window.openOrgModal = function() {
+      editingOrgIndex = null;
+      document.getElementById('modal-title').innerText = `Ajouter une fiche (${selectedDeptCode})`;
+      resetForm();
+      document.getElementById('org-modal').classList.add('active');
+    };
+
+    window.editOrgCard = function(index) {
+      editingOrgIndex = index;
+      const data = deptData[selectedDeptCode][index];
+      
+      document.getElementById('modal-title').innerText = `Éditer : ${data.organisme}`;
+      document.getElementById('field-organisme').value = data.organisme;
+      document.getElementById('field-sg').value = data.sg;
+      document.getElementById('field-tel').value = data.tel;
+      document.getElementById('field-mail').value = data.mail;
+      document.getElementById('field-syndiques').value = data.syndiques;
+      document.getElementById('field-pct').value = data.pct;
+      document.getElementById('field-cgt-maj').value = data.cgtMaj;
+      document.getElementById('field-maj-qui').value = data.majQui;
+      document.getElementById('field-discord').value = data.discord;
+
+      toggleMajInput();
+      document.getElementById('org-modal').classList.add('active');
+    };
+
+    window.saveOrgCard = async function() {
+      const cardData = {
+        organisme: document.getElementById('field-organisme').value,
+        sg: document.getElementById('field-sg').value,
+        tel: document.getElementById('field-tel').value,
+        mail: document.getElementById('field-mail').value,
+        syndiques: document.getElementById('field-syndiques').value,
+        pct: document.getElementById('field-pct').value,
+        cgtMaj: document.getElementById('field-cgt-maj').value,
+        majQui: document.getElementById('field-cgt-maj').value === 'NON' ? document.getElementById('field-maj-qui').value : '',
+        discord: document.getElementById('field-discord').value
+      };
+
+      if (!deptData[selectedDeptCode]) deptData[selectedDeptCode] = [];
+
+      if (editingOrgIndex !== null) {
+        deptData[selectedDeptCode][editingOrgIndex] = cardData;
+      } else {
+        deptData[selectedDeptCode].push(cardData);
+      }
+
+      // Envoi direct à Firebase
+      await setDoc(doc(db, "departements", selectedDeptCode), {
+        organismes: deptData[selectedDeptCode]
+      });
+
+      closeModal();
+    };
+
+    window.deleteOrgCard = async function(index) {
+      if (confirm("Supprimer cette fiche pour tous les utilisateurs ?")) {
+        deptData[selectedDeptCode].splice(index, 1);
+        await setDoc(doc(db, "departements", selectedDeptCode), {
+          organismes: deptData[selectedDeptCode]
+        });
+      }
+    };
+
+    window.toggleMajInput = function() {
+      const val = document.getElementById('field-cgt-maj').value;
+      document.getElementById('group-maj-qui').style.display = val === 'NON' ? 'flex' : 'none';
+    };
+
+    function resetForm() {
+      document.getElementById('field-organisme').selectedIndex = 0;
+      document.getElementById('field-sg').value = '';
+      document.getElementById('field-tel').value = '';
+      document.getElementById('field-mail').value = '';
+      document.getElementById('field-syndiques').value = '0';
+      document.getElementById('field-pct').value = '';
+      document.getElementById('field-cgt-maj').value = 'OUI';
+      document.getElementById('field-maj-qui').value = '';
+      document.getElementById('field-discord').value = '';
+      toggleMajInput();
+    }
+
+    window.closeModal = function() {
+      document.getElementById('org-modal').classList.remove('active');
+    };
+
+    // Carte Métropole
+    const map = L.map('map', { center: [46.5, 2.5], zoom: 6 });
+
+    fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson')
+      .then(res => res.json())
+      .then(data => {
+        const dromCodes = ['971', '972', '973', '974', '976'];
+        data.features = data.features.filter(f => !dromCodes.includes(String(f.properties.code || f.properties.code_insee || f.properties.code_dept)));
+
+        L.geoJSON(data, {
+          style: { color: '#1e293b', weight: 1, fillColor: '#93c5fd', fillOpacity: 0.75 },
+          onEachFeature: function (feature, layer) {
+            const code = String(feature.properties.code || feature.properties.code_insee || feature.properties.code_dept);
+            const name = feature.properties.nom || feature.properties.nom_dept || "Département " + code;
+
+            try {
+              const center = turf.centroid(feature).geometry.coordinates;
+              L.marker([center[1], center[0]], {
+                interactive: false,
+                icon: L.divIcon({ className: 'dept-label', html: `<div>${code}</div>`, iconSize: [30, 18] })
+              }).addTo(map);
+            } catch(e){}
+
+            layer.on('click', () => selectTerritory(code, name));
+            layer.on('mouseover', function () { this.setStyle({ fillOpacity: 0.9, fillColor: '#60a5fa' }); });
+            layer.on('mouseout', function () { this.setStyle({ fillOpacity: 0.75, fillColor: '#93c5fd' }); });
+          }
+        }).addTo(map);
+      });
+  </script>
+</body>
+</html>
